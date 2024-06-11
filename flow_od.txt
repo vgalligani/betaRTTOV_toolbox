@@ -1,0 +1,107 @@
+>>>>     test/example_rttovscatt_fwd.F90
+
+> rttov_scatt
+    
+    >> rttov_direct 
+    
+        a. intavg_prof
+        b. opdep_13
+        c. transmit 
+            
+            transmission_aux_path%od_singlelayer in  Level2SpaceTransmitt_CS_minus1_ 
+             == -coef%ff_gam(chan) * (opdp_path(lay+1,j) - opdp_path(lay,j))
+    
+    >> rttov_iniscatt
+    
+        rttov_ltu (od: USER LEVELS SingleLayerOpticalDepthsOurLevels_cs_) single layer od cada zenith
+                    od  ==  Re-allocate optical depths between half pressure levels
+        rttov_ltr (od_rttov: RTTOV LEVELS SingleLayerOpticalDepthsRTTOVLevels_cs_) single layer od por cada zenith 
+                    od_rttov ==  -1.0_jprb * log( transmission % tau_levels (1,ichan) )
+                    
+        (scatt_aux%ext / dz) * coszeb (extProHydro: nadir extinction)
+        ExtCoszenProHydroReshape_ == (scatt_aux%ext / dz) 
+        
+        aca es donde se calcula scatt_aux % dz following dry air HE (mientras que en clear sky RTTOV se calcula en)
+        y esto afecta od on user levels (rttov_ltu!) este rttov_ltu deberia ser difernete al de clear sky!!! y tambien obvio
+        aftecta scatt_aux % ext y etc ...  
+        
+        a. rttov_hydro
+        
+        b. rttov_mieproc
+        
+            HYDRO_ONLY
+              ext_
+              ext4angle_
+              extCoszen4angle_
+              ass4angle_
+              ssa4angle_
+              ssa4angleT_
+              ass4angleT_
+
+            SUMAMOS A SCATT_AUX
+            
+              ext_full_  == scatt_aux % ext (ichan,ilayer)
+              ass_full_ 
+              ssa_full_ 
+
+
+        !                                                                                                                       
+        ! This is for testing reasons: optical thickness before the delta scaling conducted by Eddington scheme    _BeEdd_      
+        !                                                                                                                       
+        OpticalDepthFromTOA_BeEdd_
+        OpticalDepthLayerFromTOA_BeEdd_  == scatt_aux % ext (ichan,ilayer) * scatt_aux % dz (iprof,ilayer)  
+        FullTransmission_BeEdd_
+        
+        
+        
+
+        c. rttov_iniedd
+        
+              ext_delt
+              scatt_aux % int_tau
+              scatt_aux % tau
+              
+    
+    >> rttov_eddington 
+    
+    
+    
+    
+Another issue we noticed in RTTOV was an internal inconsistency in the equations describing the balance between the atmo-
+spheric pressure and gravity, affecting the geometric thickness of each atmospheric layer and hence the bulk optical properties. The
+clear-sky RTTOV calculation (and gas optical properties) assume hydrostatic equilibrium (HE) under humid conditions with an al-
+titude dependent gravity, while RTTOV-SCATT (and hydrometeor optical properties) assume HE under dry conditions and a con-
+stant gravity with height.
+
+
+
+
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+RTTOV v14.0 example_fw.F90
+
+* Interpolation:
+    ! Set the interpolation method
+    opts % interpolation % interp_mode = interp_rochon_wfn
+
+    while in rttov 13.2 it was:
+      opts % interpolation % addinterp   = .TRUE.  ! Allow interpolation of input profile
+      opts % interpolation % interp_mode = 1       ! Set interpolation method
+
+
+* pressure: OJO:     
+    READ(iup,*) profiles(iprof) % p_half(:)
+
+* Near-surface air variables
+    READ(iup,*) profiles(iprof) % near_surface(isurf) % t2m, &
+                profiles(iprof) % near_surface(isurf) % q2m, &
+                profiles(iprof) % near_surface(isurf) % wind_u10m, &
+                profiles(iprof) % near_surface(isurf) % wind_v10m, &
+                profiles(iprof) % near_surface(isurf) % wind_fetch
+    CALL rttov_skipcommentline(iup, errorstatus)
+
+
+
+* tema isurf? 
+
